@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { obstacles } from "./World";
+import { spawn, isBlocked } from "./environment/navigation";
 import Character from "./Character";
 import CameraController from "./CameraController";
 import { firstProject } from "./interactions";
@@ -23,7 +23,7 @@ export default function Controller({
   const avatar = useRef<THREE.Group>(null),
     left = useRef<THREE.Group>(null),
     right = useRef<THREE.Group>(null);
-  const position = useRef(new THREE.Vector3(3, 0, 9));
+  const position = useRef(new THREE.Vector3(...spawn));
   const keys = useRef(new Set<string>());
   const orbit = useRef({ yaw: 0, pitch: 0.45, drag: false });
   const nearby = useRef(false);
@@ -129,18 +129,10 @@ export default function Controller({
         .normalize()
         .applyAxisAngle(THREE.Object3D.DEFAULT_UP, orbit.current.yaw)
         .multiplyScalar(dt * 3.3);
-      const blocked = (a: number, b: number) =>
-        Math.abs(a) > 23 ||
-        b > 22 ||
-        b < -23 ||
-        obstacles.some(
-          (o) =>
-            Math.abs(a - o.x) < o.w / 2 + 0.45 &&
-            Math.abs(b - o.z) < o.d / 2 + 0.45,
-        ) ||
-        Math.hypot(a - 4, b - 4) < 0.85;
-      if (!blocked(p.x + direction.current.x, p.z)) p.x += direction.current.x;
-      if (!blocked(p.x, p.z + direction.current.z)) p.z += direction.current.z;
+      if (!isBlocked(p.x + direction.current.x, p.z))
+        p.x += direction.current.x;
+      if (!isBlocked(p.x, p.z + direction.current.z))
+        p.z += direction.current.z;
       const angle = Math.atan2(direction.current.x, direction.current.z);
       if (avatar.current)
         avatar.current.rotation.y +=

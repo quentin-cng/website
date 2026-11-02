@@ -1,7 +1,8 @@
 import { RefObject, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { obstacles } from "./World";
+import { obstacles } from "./environment/navigation";
+import { firstProject } from "./interactions";
 export default function CameraController({
   position,
   orbit,
@@ -31,10 +32,10 @@ export default function CameraController({
         )
         .add(p);
       // Sweep the camera segment against expanded building boxes, stopping before entry.
-      for (const o of obstacles.slice(0, 3)) {
+      for (const o of obstacles.filter((o) => o.camera)) {
         const box = new THREE.Box3(
           new THREE.Vector3(o.x - o.w / 2 - 0.4, 0, o.z - o.d / 2 - 0.4),
-          new THREE.Vector3(o.x + o.w / 2 + 0.4, 10, o.z + o.d / 2 + 0.4),
+          new THREE.Vector3(o.x + o.w / 2 + 0.4, o.h, o.z + o.d / 2 + 0.4),
         );
         const ray = new THREE.Ray(
           target.current,
@@ -52,11 +53,19 @@ export default function CameraController({
           desired.current.copy(hit).addScaledVector(direction.current, -0.3);
       }
     } else {
-      target.current.set(4, 1.5, 4);
-      desired.current.set(8, 3.2, 8);
+      target.current.set(
+        firstProject.position[0],
+        1.5,
+        firstProject.position[2],
+      );
+      desired.current.set(...firstProject.camera);
     }
     if (!initialized.current) {
-      camera.position.set(16, 16, 24);
+      camera.position.set(0, 10, 45);
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.fov = 55;
+        camera.updateProjectionMatrix();
+      }
       initialized.current = true;
     }
     camera.position.lerp(desired.current, reduced ? 1 : 1 - Math.exp(-3 * dt));

@@ -1,64 +1,77 @@
-# The Journey
+# The Journey — V1.1
 
-A cinematic, playable portfolio vertical slice. Next.js App Router, TypeScript, React Three Fiber, Three.js, Drei and GSAP. No database, account system or physics engine.
+A continuous indoor exhibition hangar containing four walkable miniature worlds. Next.js App Router, TypeScript, React Three Fiber, Three.js, Drei and GSAP. No separate scene loads, teleportation, database or physics engine.
 
-## Run locally
+## Run
 
-Requires Node.js 20.9+ and npm.
+Node.js 20.9+ and npm:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. For a production server:
+Open the local URL printed by Next.js (normally http://localhost:3000). If another Next development server already owns the checkout, reuse its printed URL.
 
 ```sh
 npm run build
 npm start
+npm run typecheck
+node --test tests/navigation.test.cjs
 ```
 
-`npm run typecheck` runs the TypeScript check. The dependency lockfile is committed.
+## Experience and controls
 
-## Experience
+The existing approximately 11-second Aix-en-Provence → Montréal flight is unchanged. Automatic arrival and Skip Intro now enter the hangar at `[0, 0, 35]`, looking down the central circulation aisle.
 
-An approximately 11-second flight from Aix-en-Provence to Montréal follows a spherical great-circle arc above locally stored geographic outlines. A warm screen wash transitions into a descending campus camera. Skip Intro enters the world immediately.
+- WASD / arrows: camera-relative movement.
+- Drag: orbit. Escape: pause or close an interaction.
+- E: interact near the gold prototype sculpture in Technology, on the right toward the back of the hall. The original placeholder exhibit and cinematic camera are preserved.
+- Résumé remains a placeholder until a PDF is supplied.
 
-WASD / arrows move relative to the camera. Drag the scene to orbit. Walk toward the gold sculpture on the right of the fountain, then press E (or use the visible exhibit button). Escape closes the exhibit or pauses exploration. Click Continue exploring to resume. Résumé deliberately explains that no file has been supplied.
+The studio and personal interests installation flank the foreground. The education campus and technology installation sit farther back. Each is physically accessible from the same floor: lawn and stone paths, a hexagonal technical surface, a wood studio floor, and a circular personal interests area. All transitions are effectively flush; the controller remains on a continuous ground plane. There is no jumping, climbing mechanic or chess gameplay in this milestone.
 
-Reduced motion skips the flight, disables exhibit floating and camera easing, and removes CSS transitions. Touch devices and windows narrower than 700px receive a readable HTML exhibit instead of keyboard-only gameplay. Missing WebGL2 or a lost context also exposes the HTML fallback. Fallback mode is selected on page load; reload after changing device mode or viewport width.
+Mobile/coarse-pointer devices and windows narrower than 700px retain the HTML fallback. Reduced motion retains skipped flight and disabled exhibit floating/camera easing. Capability decisions are made on page load. Reload after changing viewport/device preferences.
 
 ## Architecture
 
-- `app/`: App Router layout, metadata, client entry and responsive CSS.
-- `components/journey/Journey.tsx`: lifecycle, loading, capability checks, intro/world state and UI composition.
-- `Intro.tsx`: geographic texture generation, location markers, flight interpolation and cleaned-up GSAP timeline.
-- `World.tsx`: authored campus geometry, lighting, environment, exhibit and collision bounds.
-- `Controller.tsx`: keyboard and pointer input, camera-relative movement, lightweight axis-separated collisions, proximity detection. Mutable refs handle frame updates; React state changes only at interaction boundaries.
-- `Character.tsx`: procedural backpack-wearing traveler with walking and idle animation.
-- `CameraController.tsx`: damped follow/orbit, exhibit framing and building obstruction checks.
-- `interactions.ts`: typed exhibit content and spatial metadata, ready for additional entries.
-- `UI.tsx`: HTML project/résumé dialog, focus management and Escape handling.
+The original flight, character, input handling, modal UI, résumé and fallback systems are retained.
 
-Canvas DPR is capped at 1.6; one shadow-casting light uses a 2048² map. Geography is a ~250 KB local JSON asset, converted once into a 2048×1024 canvas texture. Scene geometry is procedural. Event listeners, textures and animation timelines are cleaned up.
+- `Journey.tsx`: lifecycle, intro/world state and editorial overlays.
+- `Intro.tsx`: unchanged geographic flight and GSAP sequence.
+- `Character.tsx`: unchanged procedural traveler.
+- `Controller.tsx`: existing movement/input with the new spawn and shared collision check.
+- `CameraController.tsx`: existing damped follow/orbit with hangar arrival framing, a 55° world field of view, height-aware architectural obstructions and exhibit coordinates read from interaction data.
+- `interactions.ts`: original placeholder content, relocated to Technology.
+- `World.tsx`: lightweight scene composition and lighting.
+- `environment/Hangar.tsx`: 80 × 106-unit hall, 24-unit ceilings, trusses, skylights, clerestory windows, suspended lighting, floor joints and central circulation.
+- `environment/EducationWorld.tsx`: rebuilt Arts Building interpretation informed by the supplied reference: taller centre, lower wings, stone cornices, entrance columns, octagonal cupola and small McGill-inspired flag.
+- `environment/TechnologyWorld.tsx`: open steel gantry, workstations, server racks and prototype displays.
+- `environment/CreativeWorld.tsx`: timber floor, blank canvases, easels, worktable, sculpture and gallery fixtures.
+- `environment/InterestsWorld.tsx`: climbing wall and landing surface, chess table and recreational display details.
+- `environment/primitives.tsx`: shared box geometry, material cache, instanced repetitions and architectural furnishing helpers.
+- `environment/navigation.ts`: authoritative world bounds, solid-object footprints and spawn.
+
+Repeated window details, floor joints, rack slots, timber seams and chess squares use instancing. DPR remains capped at 1.6. One 2048² directional shadow map covers the hall; two local fill lights do not cast additional shadow maps. No post-processing or reflection render passes are added.
+
+## Validation
+
+Production build and strict TypeScript validation pass. Ten navigation tests flood-fill the actual clearance grid, verifying access to all four installations, the rear of the campus and the project interaction point, along with spawn safety and boundary/solid collisions.
+
+Browser checks cover automatic arrival, walking into all four installations, E interaction in Technology, Escape and restored movement into Education. The browser console was clean during these checks. The intro source remains unchanged. Additional manual checks: orbit near walls, visit the studio and climbing area, open Résumé, and reload in mobile/reduced-motion modes.
+
+## Visual limitations / next improvements
+
+- The architecture is intentionally stylized. The education facade and small heraldic flag are interpretations, not a measured reconstruction or official logo asset.
+- Canvases, monitors and prototypes are neutral placeholders. No descriptions for TapIt, Bream, research or personal achievements have been invented.
+- Skylight illumination combines a directional light, shadow-casting trusses, fog and subtle floor light patches; there is no true volumetric scattering, baked GI or real-time mirror reflection. A lighting bake and authored surface textures would add depth next.
+- Major architectural solids, furniture and prototype plinths have collision footprints. Small decorative items (trees, easels, foliage and some furnishings) remain non-solid. Buildings are exhibit exteriors; they have no explorable interiors.
+- Walkable surfaces stay at ground level. The climbing wall and chess set are visual exhibits, not minigames.
+- Camera obstruction remains the existing lightweight ray-based system, expanded to hall walls and taller exhibit solids. Fast corner turns may still correct abruptly.
+- No cross-device frame-rate guarantee: repeated details are instanced, but low-end GPU testing and further batching remain recommended before public release.
 
 ## Assets
 
-`public/data/countries.json` is from Johan Sundström's [world.geo.json](https://github.com/johan/world.geo.json), based on Natural Earth geographic data. Natural Earth data is public domain. Borders are illustrative, not a political statement. The globe uses locally bundled data; no map service or API key is required.
+The existing locally bundled `public/data/countries.json` comes from [world.geo.json](https://github.com/johan/world.geo.json), based on public-domain Natural Earth data. All exhibit geometry is procedural. The supplied building photographs were used as visual references, not bundled as website assets.
 
-DM Sans and Libre Caslon Display are requested through Google Fonts, with system sans-serif/Georgia fallbacks when offline. All 3D models are generated in this project.
-
-## Limitations and next improvements
-
-- This is an artistic campus impression, not an accurate McGill reconstruction. Buildings have no interiors; the distant skyline is intentionally abstract.
-- The character is procedural. Replace it with a carefully art-directed, lightweight rigged GLB and richer walk/turn transitions next.
-- Building/fountain/exhibit collisions are simple bounds. Decorative benches, trees and planters are not solid. A navigation mesh or capsule collision sweep would improve corners and dense props before expanding the map.
-- Lighting uses standard real-time shadows and fog, with no baked global illumination, ambient occlusion or audio. Baked lighting, refined stone materials, ground detailing and optional ambient sound are the highest-value visual upgrades.
-- Camera obstruction checks cover buildings; rapid orbit around corners can still produce an abrupt correction. More complex spaces warrant a swept camera collider.
-- Desktop performance has not been benchmarked across hardware. Instancing repeated foliage and reducing shadow resolution on weaker GPUs are recommended before release.
-- Project and résumé content are explicitly placeholders. Add real content and a supplied résumé PDF before publishing as a finished portfolio.
-- Mobile provides accessible exhibit content, not touch-based 3D gameplay.
-
-## Manual validation
-
-Check automatic arrival and Skip Intro; walk with both WASD and arrows; drag orbit near buildings; approach the sculpture, press E, close with Escape and resume walking; open and close Résumé; pause/resume; test narrow/mobile and reduced-motion browser preferences. Production build and TypeScript checks should pass before deployment.
+Google Fonts provides DM Sans and Libre Caslon Display with local system fallbacks. No added remote assets or API keys are required for the redesigned environment.

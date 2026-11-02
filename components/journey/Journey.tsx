@@ -99,7 +99,7 @@ export default function Journey() {
       </h1>
       <p>
         {mobile
-          ? "The 3D journey is designed for a desktop keyboard and mouse. Explore the first exhibit here, or return on desktop to walk through the courtyard."
+          ? "The 3D journey is designed for a desktop keyboard and mouse. Explore the first exhibit here, or return on desktop to explore the exhibition hall."
           : "The 3D experience needs WebGL. You can still explore the first exhibit here."}
       </p>
       <button className="primary" onClick={interact}>
@@ -201,12 +201,12 @@ export default function Journey() {
               <span className="live-dot" /> CHAPTER 01 · MONTRÉAL
             </p>
             <h1>A new beginning.</h1>
-            <p>Follow your curiosity. There’s a story around the corner.</p>
+            <p>Four worlds. Follow your curiosity.</p>
           </div>
           <div className="location">
             <span>45°30′ N &nbsp; 73°34′ W</span>
-            <strong>The courtyard</strong>
-            <small>GOLDEN HOUR · EARLY AUTUMN</small>
+            <strong>The exhibition hall</strong>
+            <small>FOUR WORLDS · ONE JOURNEY</small>
           </div>
           <div className="compass">
             <span>N</span>
